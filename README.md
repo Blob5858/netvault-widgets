@@ -1,1 +1,0 @@
-# netvault-widgets
