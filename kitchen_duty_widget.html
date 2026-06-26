@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitchen Duty Today</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Arial, sans-serif;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+  }
+  .card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1.75rem 2rem;
+    max-width: 300px;
+    width: 100%;
+    text-align: center;
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 1rem;
+  }
+  .avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 auto 0.85rem;
+  }
+  .person-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.3rem;
+  }
+  .date-str {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 1rem;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 99px;
+    padding: 4px 14px;
+    background: #EBF3FB;
+    color: #185FA5;
+  }
+  .icon-big {
+    font-size: 40px;
+    margin: 0.5rem 0 1rem;
+  }
+  .hol-card { border-color: #fbbf24; background: #fffbeb; }
+  .hol-label { color: #92400e; }
+  .hol-name { font-size: 20px; font-weight: 700; color: #92400e; margin-bottom: 0.3rem; }
+  .hol-badge { background: #fef3c7; color: #92400e; }
+  .weekend-card { border-color: #e5e7eb; }
+  .weekend-msg { font-size: 15px; color: #6b7280; margin-bottom: 1rem; }
+  .refresh-note {
+    font-size: 11px;
+    color: #d1d5db;
+    margin-top: 1.25rem;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const people = ["Nimue","Andrew","Keith","Broc","Lachlan","Nakai","Finlay"];
+const avatarColors = ["#1F4E79","#0F6E56","#993C1D","#993556","#3C3489","#3B6D11","#633806"];
+
+const qldHolidays = {
+  "2026-08-12": "Royal Queensland Show",
+  "2026-10-05": "King's Birthday",
+  "2026-12-25": "Christmas Day",
+  "2026-12-28": "Boxing Day (substitute)"
+};
+
+function pad(n) { return String(n).padStart(2, '0'); }
+function toKey(d) { return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+
+function getMonday(d) {
+  var dt = new Date(d);
+  var day = dt.getDay();
+  dt.setDate(dt.getDate() - day + (day === 0 ? -6 : 1));
+  dt.setHours(0, 0, 0, 0);
+  return dt;
+}
+
+function getPersonIdx(weekStart, dayIdx) {
+  var base = new Date(2024, 0, 1);
+  var weeks = Math.round((weekStart - base) / (7 * 24 * 3600 * 1000));
+  var slot = weeks * 5 + dayIdx;
+  return ((slot % people.length) + people.length) % people.length;
+}
+
+function initials(name) { return name.slice(0, 2).toUpperCase(); }
+
+function render() {
+  var today = new Date();
+  var dow = today.getDay();
+  var key = toKey(today);
+  var hol = qldHolidays[key];
+  var root = document.getElementById('root');
+  var dateStr = today.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  if (dow === 0 || dow === 6) {
+    root.innerHTML =
+      '<div class="card weekend-card">' +
+        '<div class="card-label">Kitchen duty</div>' +
+        '<div class="icon-big">&#x1F31F;</div>' +
+        '<div class="hol-name" style="color:#374151">Weekend</div>' +
+        '<div class="weekend-msg">No duty today.<br>Back Monday!</div>' +
+        '<div class="refresh-note">' + dateStr + '</div>' +
+      '</div>';
+  } else if (hol) {
+    root.innerHTML =
+      '<div class="card hol-card">' +
+        '<div class="card-label hol-label">Kitchen duty</div>' +
+        '<div class="icon-big">&#x1F384;</div>' +
+        '<div class="hol-name">Public holiday</div>' +
+        '<div class="date-str" style="color:#92400e">' + hol + '</div>' +
+        '<span class="badge hol-badge">No duty today</span>' +
+        '<div class="refresh-note">' + dateStr + '</div>' +
+      '</div>';
+  } else {
+    var mon = getMonday(today);
+    var dayIdx = dow - 1;
+    var idx = getPersonIdx(mon, dayIdx);
+    var name = people[idx];
+    var color = avatarColors[idx];
+    root.innerHTML =
+      '<div class="card">' +
+        '<div class="card-label">Kitchen duty today</div>' +
+        '<div class="avatar" style="background:' + color + '">' + initials(name) + '</div>' +
+        '<div class="person-name">' + name + '</div>' +
+        '<div class="date-str">' + dateStr + '</div>' +
+        '<span class="badge">Dishes + kitchen tidy</span>' +
+        '<div class="refresh-note">Refreshes automatically each day</div>' +
+      '</div>';
+  }
+}
+
+render();
+</script>
+</body>
+</html>
